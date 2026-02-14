@@ -11,19 +11,12 @@
         <link rel="stylesheet" href="docs/css/prettify.min.css" type="text/css">
         <link rel="stylesheet" href="docs/css/fontawesome-5.15.1-web/all.css" type="text/css">
 
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 
         <script type="text/javascript" src="docs/js/prettify.min.js"></script>
 
         <link rel="stylesheet" href="dist/css/bootstrap-multiselect.css" type="text/css">
-        <script type="text/javascript" src="dist/js/bootstrap-multiselect.js"></script>
-
-        <script type="text/javascript">
-            $(document).ready(function() {
-                window.prettyPrint() && prettyPrint();
-            });
-        </script>
+        <script type="text/javascript" src="src/bootstrap-multiselect.js"></script>
 
         <style>
             .nav-link.active {
@@ -105,31 +98,18 @@
                             <h3>Link the Required Files</h3>
 
                             <p>
-                                First, the <a href="https://jquery.com/" target="_blank">jQuery</a> library needs to be included. Then <a href="https://getbootstrap.com" target="_blank">Bootstrap</a> - both the Javascript library and the CSS stylesheet - needs to be included.
+                                First, the <a href="https://getbootstrap.com" target="_blank">Bootstrap</a> Javascript and CSS files need to be included.
                             </p>
 
 <pre class="prettyprint linenums">
-&lt;!-- Include Bootstrap and jQuery: --&gt;
+&lt;!-- Include Bootstrap: --&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;css/bootstrap.min.css&quot; type=&quot;text/css&quot;/&gt;
-&lt;script type=&quot;text/javascript&quot; src=&quot;js/jquery.min.js&quot;&gt;&lt;/script&gt;
 &lt;script type=&quot;text/javascript&quot; src=&quot;js/bootstrap.min.js&quot;&gt;&lt;/script&gt;
 
 &lt;!-- Include the plugin's CSS and JS: --&gt;
 &lt;script type=&quot;text/javascript&quot; src=&quot;js/bootstrap-multiselect.js&quot;&gt;&lt;/script&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;css/bootstrap-multiselect.css&quot; type=&quot;text/css&quot;/&gt;
 </pre>
-
-                            <p>
-                                The jQuery library can also be included using a CDN, for example the <a href="https://developers.google.com/speed/libraries/devguide?hl=de&csw=1#jquery">Google CDN</a>:
-                            </p>
-
-<pre class="prettyprint linenums">
-&lt;script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"&gt;&lt;/script&gt;
-</pre>
-
-                            <p class="alert alert-info">
-                                Note that the plugin will work both with version 2.x of the jQuery library as well as with version 1.10.x of the jQuery library. So for using the Google CDN you may have to adjust the version.
-                            </p>
                         </li>
                         <li>
                             <h3>Create a Select</h3>
@@ -159,11 +139,12 @@
 
                             <div class="example">
                                 <script type="text/javascript">
-                                    $(document).ready(function() {
-                                        $('#example-getting-started').multiselect({
-                                            enableHTML: true
-                                        });
-                                    });
+                                    const multi = new Multiselect(
+                                        document.getElementById('#example-getting-started'),
+                                        {
+                                            enableHTML: true,
+                                        }
+                                    );
                                 </script>
                                 <select id="example-getting-started" multiple="multiple">
                                     <option value="cheese">Cheese</option>
@@ -7628,5 +7609,8 @@ $(document).ready(function() {
                 </div>
             </div>
         </div>
+        <script type="text/javascript">
+            window.prettyPrint() && prettyPrint();
+        </script>
     </body>
 </html>

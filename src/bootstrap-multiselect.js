@@ -38,6 +38,11 @@ const unwrap = function (el) {
     parent.replaceWith(el);
 };
 
+const isVisible = function (el) {
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0;
+};
+
 /**
  * @param {String} html
  * @returns {HTMLElement}
@@ -97,6 +102,7 @@ const defaults = {
      * @param {HTMLSelectElement} select
      * @returns {String}
      */
+    // eslint-disable-next-line no-unused-vars
     buttonTitle: function (options, select) {
         if (options.length === 0) {
             return this.nonSelectedText;
@@ -115,6 +121,7 @@ const defaults = {
      * @param {HTMLOptionElement} option
      * @returns {Boolean}
      */
+    // eslint-disable-next-line no-unused-vars
     checkboxName: function (option) {
         return false; // no checkbox name
     },
@@ -144,6 +151,7 @@ const defaults = {
      * @param {HTMLOptionElement} option
      * @param {Boolean} checked
      */
+    // eslint-disable-next-line no-unused-vars
     onChange: function (option, checked) {
 
     },
@@ -151,6 +159,7 @@ const defaults = {
      * Triggered when the dropdown is shown.
      * @param {Event} event show.bs.dropdown
      */
+    // eslint-disable-next-line no-unused-vars
     onDropdownShow: function (event) {
     },
     /**
@@ -158,6 +167,7 @@ const defaults = {
      *
      * @param {Event} event hide.bs.dropdown
      */
+    // eslint-disable-next-line no-unused-vars
     onDropdownHide: function (event) {
     },
     /**
@@ -165,6 +175,7 @@ const defaults = {
      *
      * @param {Event} event shown.bs.dropdown
      */
+    // eslint-disable-next-line no-unused-vars
     onDropdownShown: function (event) {
     },
     /**
@@ -172,18 +183,21 @@ const defaults = {
      *
      * @param {Event} event hidden.bs.dropdown
      */
+    // eslint-disable-next-line no-unused-vars
     onDropdownHidden: function (event) {
     },
     /**
      * Triggered on select all.
      * @param {Array<HTMLElement>}
      */
+    // eslint-disable-next-line no-unused-vars
     onSelectAll: function (selectedOptions) {
     },
     /**
      * Triggered on deselect all.
      * @param {Array<HTMLElement>}
      */
+    // eslint-disable-next-line no-unused-vars
     onDeselectAll: function (deselectedOptions) {
     },
     /**
@@ -192,6 +206,7 @@ const defaults = {
      * @param {HTMLSelectElement} select
      * @param {HTMLDivElement} container
      */
+    // eslint-disable-next-line no-unused-vars
     onInitialized: function (select, container) {
     },
     /**
@@ -199,6 +214,7 @@ const defaults = {
      *
      * @param {HTMLInputElement} filter
      */
+    // eslint-disable-next-line no-unused-vars
     onFiltering: function (filter) {
     },
     enableHTML: false,
@@ -229,7 +245,6 @@ const defaults = {
     // possible options: 'text', 'value', 'both'
     filterBehavior: 'text',
     includeFilterClearBtn: true,
-    preventInputChangeEvent: false,
     nonSelectedText: 'None selected',
     nSelectedText: 'selected',
     allSelectedText: 'All selected',
@@ -280,6 +295,8 @@ class Multiselect {
     buttonGroupReset = null;
     /** @prop {Object} */
     defaultSelection = {};
+    /** @prop {Number} Count for setting unique ids */
+    #internalIdCount = 0;
 
     constructor(
         element,
@@ -363,7 +380,10 @@ class Multiselect {
      * Builds the button of the multiselect.
      */
     buildButton() {
-        this.button = getElementFromString(this.options.templates.button).classList.add(this.options.buttonClass);
+        this.button = getElementFromString(this.options.templates.button);
+        if (this.options.buttonClass) {
+            this.button.classList.add(this.options.buttonClass);
+        }
         if (this.options.inheritClass) {
             this.#select.classList.forEach((cl) => {
                 this.button.classList.add(cl);
@@ -460,7 +480,7 @@ class Multiselect {
      * @returns {String} unique id
      */
     createAndApplyUniqueId(relatedElement) {
-        const id = `multiselect_${this.multiselectId}_${this.internalIdCount++}`;
+        const id = `multiselect_${this.multiselectId}_${this.#internalIdCount++}`;
         if (relatedElement) {
             relatedElement.dataset.multiselectid = id;
         }
@@ -524,7 +544,9 @@ class Multiselect {
         const title = element.getAttribute('title');
 
         const option = getElementFromString(this.options.templates.option);
-        option.classList.add(...classes.split(' '));
+        if (classes) {
+            option.classList.add(...classes.split(' '));
+        }
 
         if (isGroupOption && this.options.indentGroupOptions) {
             if (this.options.enableCollapsibleOptGroups) {
@@ -649,219 +671,40 @@ class Multiselect {
         });
 
         // Bind the change event on the dropdown elements.
-        $(this.$popupContainer).off('change', '> *:not(.multiselect-group) input[type="checkbox"], > *:not(.multiselect-group) input[type="radio"]');
-        $(this.$popupContainer).on('change', '> *:not(.multiselect-group) input[type="checkbox"], > *:not(.multiselect-group) input[type="radio"]', $.proxy(function (event) {
-            var $target = $(event.target);
-
-            var checked = $target.prop('checked') || false;
-            var isSelectAllOption = $target.val() === this.options.selectAllValue;
-
-            // Apply or unapply the configured selected class.
-            if (this.options.selectedClass) {
-                if (checked) {
-                    $target.closest('.multiselect-option')
-                        .addClass(this.options.selectedClass);
-                } else {
-                    $target.closest('.multiselect-option')
-                        .removeClass(this.options.selectedClass);
-                }
-            }
-
-            // Get the corresponding option.
-            var id = $target.attr('id');
-            var $option = this.getOptionById(id);
-
-            var $optionsNotThis = $('option', this.$select).not($option);
-            var $checkboxesNotThis = $('input', this.$container).not($target);
-
-            if (isSelectAllOption) {
-                if (checked) {
-                    this.selectAll(this.options.selectAllJustVisible, true);
-                } else {
-                    this.deselectAll(this.options.selectAllJustVisible, true);
-                }
-            } else {
-                if (checked) {
-                    $option.prop('selected', true);
-
-                    if (this.options.multiple) {
-                        // Simply select additional option.
-                        $option.prop('selected', true);
-                    } else {
-                        // Unselect all other options and corresponding checkboxes.
-                        if (this.options.selectedClass) {
-                            $($checkboxesNotThis).closest('.dropdown-item').removeClass(this.options.selectedClass);
-                        }
-
-                        $($checkboxesNotThis).prop('checked', false);
-                        $optionsNotThis.prop('selected', false);
-
-                        // It's a single selection, so close.
-                        this.$button.click();
-                    }
-
-                    if (this.options.selectedClass === 'active') {
-                        $optionsNotThis.closest('.dropdown-item').css('outline', '');
-                    }
-                } else {
-                    // Unselect option.
-                    $option.prop('selected', false);
-                }
-
-                // To prevent select all from firing onChange: #575
-                this.options.onChange($option, checked);
-
-                // Do not update select all or optgroups on select all change!
-                this.updateSelectAll();
-
-                if (this.options.enableClickableOptGroups && this.options.multiple) {
-                    this.updateOptGroups();
-                }
-            }
-
-            this.$select.change();
-            this.updateButtonText();
-
-            if (this.options.preventInputChangeEvent) {
-                return false;
-            }
-        }, this));
-
-        $('.multiselect-option', this.$popupContainer).off('mousedown');
-        $('.multiselect-option', this.$popupContainer).on('mousedown', function (e) {
-            if (e.shiftKey) {
-                // Prevent selecting text by Shift+click
-                return false;
-            }
+        this.popupContainer.querySelectorAll(':scope > *:not(.multiselect-group) input[type="checkbox"], :scope > *:not(.multiselect-group) input[type="radio"]').forEach((el) => {
+            el.addEventListener('change', (event) => {
+                this.#handleCheckChange(event);
+            });
         });
 
-        $(this.$popupContainer).off('touchstart click', '.multiselect-option, .multiselect-all, .multiselect-group');
-        $(this.$popupContainer).on('touchstart click', '.multiselect-option, .multiselect-all, .multiselect-group', $.proxy(function (event) {
-            event.stopPropagation();
-
-            var $target = $(event.target);
-
-            if (event.shiftKey && this.options.multiple) {
-                if (!$target.is('input')) { // Handles checkbox selection manually (see https://github.com/davidstutz/bootstrap-multiselect/issues/431)
-                    event.preventDefault();
-                    $target = $target.closest('.multiselect-option').find('input');
-                    $target.prop('checked', !$target.prop('checked'));
+        this.popupContainer.querySelectorAll('.multiselect-option').forEach((el) => {
+            el.addEventListener('mousedown', (ev) => {
+                if (ev.shiftKey) {
+                    // Prevent selecting text by Shift+click
+                    ev.preventDefault();
                 }
-                var checked = $target.prop('checked') || false;
+            });
+        });
 
-                if (this.lastToggledInput !== null && this.lastToggledInput !== $target) { // Make sure we actually have a range
-                    var from = this.$popupContainer.find('.multiselect-option:visible').index($target.closest('.multiselect-option'));
-                    var to = this.$popupContainer.find('.multiselect-option:visible').index(this.lastToggledInput.closest('.multiselect-option'));
-
-                    if (from > to) { // Swap the indices
-                        var tmp = to;
-                        to = from;
-                        from = tmp;
-                    }
-
-                    // Make sure we grab all elements since slice excludes the last index
-                    ++to;
-
-                    // Change the checkboxes and underlying options
-                    var range = this.$popupContainer.find('.multiselect-option:not(.multiselect-filter-hidden)').slice(from, to).find('input');
-
-                    range.prop('checked', checked);
-
-                    if (this.options.selectedClass) {
-                        range.closest('.multiselect-option')
-                            .toggleClass(this.options.selectedClass, checked);
-                    }
-
-                    for (var i = 0, j = range.length; i < j; i++) {
-                        var $checkbox = $(range[i]);
-
-                        var $option = this.getOptionById($checkbox.attr('id'));
-
-                        $option.prop('selected', checked);
-                    }
-                }
-
-                // Trigger the select "change" event
-                $target.trigger('change');
-            } else if (!$target.is('input')) {
-                var $checkbox = $target.closest('.multiselect-option, .multiselect-all').find('.form-check-input');
-                if ($checkbox.length > 0) {
-                    if (this.options.multiple || !$checkbox.prop('checked')) {
-                        $checkbox.prop('checked', !$checkbox.prop('checked'));
-                        $checkbox.change();
-                    }
-                } else if (this.options.enableClickableOptGroups && this.options.multiple && !$target.hasClass('caret-container')) {
-                    var groupItem = $target;
-                    if (!groupItem.hasClass('multiselect-group')) {
-                        groupItem = $target.closest('.multiselect-group');
-                    }
-                    $checkbox = groupItem.find('.form-check-input');
-                    if ($checkbox.length > 0) {
-                        $checkbox.prop('checked', !$checkbox.prop('checked'));
-                        $checkbox.change();
-                    }
-                }
-
-                event.preventDefault();
-            }
-
-            // Remembers last clicked option
-            var $input = $target.closest('.multiselect-option').find('input[type=\'checkbox\'], input[type=\'radio\']');
-            if ($input.length > 0) {
-                this.lastToggledInput = $target;
-            } else {
-                this.lastToggledInput = null;
-            }
-
-            $target.blur();
-        }, this));
+        this.popupContainer.addEventListener('touchstart', (event) => {
+            this.#handleClickSelect(event);
+        });
+        this.popupContainer.addEventListener('click', (event) => {
+            this.#handleClickSelect(event);
+        });
 
         // Keyboard support.
-        this.$container.off('keydown.multiselect').on('keydown.multiselect', $.proxy(function (event) {
-            var $items = $(this.$container).find('.multiselect-option:not(.disabled), .multiselect-group:not(.disabled), .multiselect-all').filter(':visible');
-            var index = $items.index($items.filter(':focus'));
-            var $search = $('.multiselect-search', this.$container);
-
-            // keyCode 9 == Tab
-            if (event.keyCode === 9 && this.$container.hasClass('show')) {
-                this.$button.click();
-            }
-            // keyCode 13 = Enter
-            else if (event.keyCode == 13) {
-                var $current = $items.eq(index);
-                setTimeout(function () {
-                    $current.focus();
-                }, 1);
-            }
-            // keyCode 38 = Arrow Up
-            else if (event.keyCode == 38) {
-                if (index == 0 && !$search.is(':focus')) {
-                    setTimeout(function () {
-                        $search.focus();
-                    }, 1);
-                }
-            }
-            // keyCode 40 = Arrow Down
-            else if (event.keyCode == 40) {
-                if ($search.is(':focus')) {
-                    var $first = $items.eq(0);
-                    setTimeout(function () {
-                        $search.blur();
-                        $first.focus();
-                    }, 1);
-                } else if (index == -1) {
-                    setTimeout(function () {
-                        $search.focus();
-                    }, 1);
-                }
-            }
-        }, this));
+        // todo think this should be added elsewhere since its on the container not the popup
+        this.container.addEventListener('keydown', (ev) => {
+            this.#handleKeyboardActions(ev);
+        });
 
         if (this.options.enableClickableOptGroups && this.options.multiple) {
-
-            $('.multiselect-group input', this.$popupContainer).on('change', $.proxy(function (event) {
-                // #handleClickableGroups
-            }, this));
+            this.popupContainer.querySelectorAll('.multiselect-group input').forEach((el) => {
+                el.addEventListener('change', (ev) => {
+                    this.#handleClickableGroups(ev);
+                });
+            });
         }
 
         if (this.options.enableCollapsibleOptGroups) {
@@ -877,6 +720,220 @@ class Multiselect {
         }
     }
 
+    #handleClickSelect(event) {
+        if (!event.target.closest('.multiselect-option, .multiselect-all, .multiselect-group')) {
+            return;
+        }
+        event.stopPropagation();
+        const target = event.target;
+
+        // handle shift click to select options in a range
+        if (event.shiftKey && this.options.multiple) {
+            if (target.tagName == 'input') { // Handles checkbox selection manually (see https://github.com/davidstutz/bootstrap-multiselect/issues/431)
+                event.preventDefault();
+                target.checked = !target.checked;
+            }
+            const checked = target.checked ?? false;
+
+            if (this.lastToggledInput !== null && this.lastToggledInput !== target) { // Make sure we actually have a range
+                const visibleItems = Array.from(this.popupContainer.querySelectorAll('.multiselect-option')).filter((el) => {
+                    return isVisible(el);
+                });
+                let from = visibleItems.findIndex((el) => {
+                    return el === target.closest('.multiselect-option');
+                });
+                let to = visibleItems.findIndex((el) => {
+                    return el === this.lastToggledInput.closest('.multiselect-option');
+                });
+                if (from > to) {
+                    // Swap the indices
+                    const tmp = to;
+                    to = from;
+                    from = tmp;
+                }
+
+                // Make sure we grab all elements since slice excludes the last index
+                ++to;
+
+                // Change the checkboxes and underlying options
+                const range = Array.from(this.popupContainer.querySelectorAll('.multiselect-option:not(.multiselect-filter-hidden)')).slice(from, to);
+
+                range.forEach((el) => {
+                    const input = el.querySelector('input');
+                    if (!input) {
+                        return;
+                    }
+                    input.checked = checked;
+                    if (this.options.selectedClass) {
+                        if (checked) {
+                            range.closest('.multiselect-option')
+                                .classList.add(this.options.selectedClass);
+                        } else {
+                            range.closest('.multiselect-option')
+                                .classList.remove(this.options.selectedClass);
+                        }
+                    }
+                    const option = this.getOptionById(el.id);
+                    option.selected = checked;
+                });
+            }
+
+            // Trigger the select "change" event
+            const changeEvent = new Event('change');
+            target.dispatchEvent(changeEvent);
+        } else if (target.tagName !== 'input') {
+            let checkbox = target.closest('.multiselect-option, .multiselect-all')?.querySelector('.form-check-input');
+            if (checkbox) {
+                if (this.options.multiple || checkbox.checked) {
+                    checkbox.checked = !checkbox.checked;
+                    const changeEvent = new Event('change');
+                    checkbox.dispatchEvent(changeEvent);
+                }
+            } else if (this.options.enableClickableOptGroups && this.options.multiple && !target.classList.contains('caret-container')) {
+                let groupItem = target;
+                if (!groupItem.classList.contains('multiselect-group')) {
+                    groupItem = target.closest('.multiselect-group');
+                }
+                checkbox = groupItem.querySelector('.form-check-input');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    const changeEvent = new Event('change');
+                    checkbox.dispatchEvent(changeEvent);
+                }
+            }
+
+            event.preventDefault();
+        }
+
+        // Remembers last clicked option
+        const input = target.closest('.multiselect-option')?.querySelector('input[type="checkbox"], input[type="radio"]');
+        if (input) {
+            this.lastToggledInput = target;
+        } else {
+            this.lastToggledInput = null;
+        }
+
+        target.blur();
+    }
+
+    /**
+     * @param {KeyboardEvent} event
+     */
+    #handleKeyboardActions(event) {
+        const items = Array.from(this.container.querySelectorAll('.multiselect-option:not(.disabled), .multiselect-group:not(.disabled), .multiselect-all')).filter((el) => {
+            return isVisible(el);
+        });
+        const index = items.findIndex((el) => {
+            return el === document.activeElement;
+        });
+        const search = this.container.querySelector('.multiselect-search');
+
+        if (event.key === 'Tab' && this.container.classList.contains('show')) {
+            this.button.click();
+        } else if (event.key === 'Enter') {
+            const current = items[index];
+            setTimeout(() => {
+                current.focus();
+            }, 1);
+        } else if (event.key === 'ArrowUp') {
+            if (index === 0 && search !== document.activeElement) {
+                setTimeout(() => {
+                    search?.focus();
+                }, 1);
+            }
+        } else if (event.key === 'ArrowDown') {
+            if (search === document.activeElement) {
+                const first = items[0];
+                setTimeout(() => {
+                    search.blur();
+                    first.focus();
+                }, 1);
+            } else if (index == -1) {
+                setTimeout(() => {
+                    search?.focus();
+                }, 1);
+            }
+        }
+    }
+
+    #handleCheckChange(event) {
+        const target = event.target;
+
+        const checked = target.checked || false;
+        const isSelectAllOption = target.value === this.options.selectAllValue;
+
+        // Apply or unapply the configured selected class.
+        if (this.options.selectedClass) {
+            if (checked) {
+                target.closest('.multiselect-option')
+                    ?.classList.add(this.options.selectedClass);
+            } else {
+                target.closest('.multiselect-option')
+                    ?.classList.remove(this.options.selectedClass);
+            }
+        }
+
+        // Get the corresponding option.
+        const id = target.id;
+        const option = this.getOptionById(id);
+
+        if (isSelectAllOption) {
+            if (checked) {
+                this.selectAll(this.options.selectAllJustVisible, true);
+            } else {
+                this.deselectAll(this.options.selectAllJustVisible, true);
+            }
+        } else {
+            if (checked) {
+                option.selected = true;
+
+                const optionsNotThis = Array.from(this.#select.querySelectorAll('option')).filter((el) => el !== option);
+                const checkboxesNotThis = this.container.querySelectorAll(`input:not(#${id}`);
+                if (!this.options.multiple) {
+                    // Unselect all other options and corresponding checkboxes.
+                    checkboxesNotThis.forEach((el) => {
+                        el.checked = false;
+                        if (this.options.selectedClass) {
+                            el.closest('.dropdown-item')?.classList.remove(this.options.selectedClass);
+                        }
+                    });
+                    optionsNotThis.forEach((el) => {
+                        el.selected = false;
+                    });
+
+                    // It's a single selection, so close.
+                    this.button.click();
+                }
+
+                if (this.options.selectedClass === 'active') {
+                    optionsNotThis.forEach((el) => {
+                        const item = el.closest('.dropdown-item');
+                        if (item) {
+                            item.style.outline = '';
+                        }
+                    });
+                }
+            } else {
+                // Unselect option.
+                option.selected = false;
+            }
+
+            // To prevent select all from firing onChange: #575
+            this.options.onChange(option, checked);
+
+            // Do not update select all or optgroups on select all change!
+            this.updateSelectAll();
+
+            if (this.options.enableClickableOptGroups && this.options.multiple) {
+                this.updateOptGroups();
+            }
+        }
+
+        const change = new Event('change');
+        this.#select.dispatchEvent(change);
+        this.updateButtonText();
+    }
+
     #handleClickableGroups(event) {
         event.stopPropagation();
 
@@ -885,50 +942,61 @@ class Multiselect {
 
         const item = target.closest('.dropdown-item');
 
-        // TODO write method to handle this
-        const $group = $item.nextUntil('.multiselect-group')
-            .not('.multiselect-filter-hidden')
-            .not('.disabled');
+        const inputs = [];
+        let sibling = item.nextElementSibling;
+        while (sibling) {
+            if (sibling.classList.contains('.multiselect-group')) {
+                break;
+            }
+            if (
+                !sibling.classList.contains('multiselect-filter-hidden')
+                && !sibling.classList.contains('disabled')
+            ) {
+                const input = sibling.querySelector('input');
+                if (input) {
+                    inputs.push(input);
+                }
+            }
+            sibling = sibling.nextElementSibling;
+        }
 
-        const $inputs = $group.find('input');
-
-        const $options = [];
+        const options = [];
 
         if (this.options.selectedClass) {
             if (checked) {
-                $item.addClass(this.options.selectedClass);
+                item.classList.add(this.options.selectedClass);
             } else {
-                $item.removeClass(this.options.selectedClass);
+                item.classList.remove(this.options.selectedClass);
             }
         }
 
-        $.each($inputs, $.proxy(function (index, input) {
-            const $input = $(input);
-            const id = $input.attr('id');
-            const $option = this.getOptionById(id);
+        inputs.forEach((input) => {
+            const id = input.id;
+            const option = this.getOptionById(id);
 
             if (checked) {
-                $input.prop('checked', true);
-                $input.closest('.dropdown-item')
-                    .addClass(this.options.selectedClass);
+                input.checked = true;
+                input.closest('.dropdown-item')
+                    ?.classList.add(this.options.selectedClass);
 
-                $option.prop('selected', true);
+                option.selected = true;
             } else {
-                $input.prop('checked', false);
-                $input.closest('.dropdown-item')
-                    .removeClass(this.options.selectedClass);
+                input.checked = false;
+                input.closest('.dropdown-item')
+                    ?.classList.remove(this.options.selectedClass);
 
-                $option.prop('selected', false);
+                option.selected = false;
             }
 
-            $options.push($option);
-        }, this));
+            options.push(option);
+        });
 
         // Cannot use select or deselect here because it would call updateOptGroups again.
 
-        this.options.onChange($options, checked);
+        this.options.onChange(options, checked);
 
-        this.$select.change();
+        const change = new Event('change');
+        this.#select.dispatchEvent(change);
         this.updateButtonText();
         this.updateSelectAll();
     }
@@ -1591,8 +1659,9 @@ class Multiselect {
      * Rebuilds the dropdown, the filter and the select all option.
      */
     rebuild() {
-        this.internalIdCount = 0;
+        this.#internalIdCount = 0;
 
+        // @todo remove/rebuild so event listeners are reset?
         this.popupContainer.innerHTML = '';
         this.#select.querySelectorAll('option, optgroup').forEach((el) => {
             el.removeAttribute('data-multiselectid');
@@ -1797,7 +1866,7 @@ class Multiselect {
      * @returns {Array<HTMLOptionElement>}
      */
     getSelected() {
-        return Array.from(this.#select.querySelectorAll('option[selected]'));
+        return Array.from(this.#select.selectedOptions);
     }
 
     setAllSelectedText(allSelectedText) {
@@ -1814,4 +1883,4 @@ class Multiselect {
     }
 }
 
-export default Multiselect;
+// export default Multiselect;

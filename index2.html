@@ -1,0 +1,52 @@
+<html>
+    <head>
+        <title>Bootstrap Multiselect</title>
+        <meta name="robots" content="noindex, nofollow" />
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+        <link rel="stylesheet" href="docs/css/bootstrap-example.min.css" type="text/css">
+        <link rel="stylesheet" href="docs/css/prettify.min.css" type="text/css">
+        <link rel="stylesheet" href="docs/css/fontawesome-5.15.1-web/all.css" type="text/css">
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+
+        <script type="text/javascript" src="docs/js/prettify.min.js"></script>
+
+        <link rel="stylesheet" href="dist/css/bootstrap-multiselect.css" type="text/css">
+        <script type="text/javascript" src="src/bootstrap-multiselect.js"></script>
+
+        <style>
+            .nav-link.active {
+                font-weight: bold;
+            }
+
+            .badge {
+                font-size: 85%;
+            }
+        </style>
+    </head>
+    <body data-bs-spy="scroll" data-bs-target="#affix" style="font-size:14px;">
+<div class="example">
+
+                                <select id="example-getting-started" multiple="multiple">
+                                    <option value="cheese">Cheese</option>
+                                    <option value="tomatoes">Tomatoes</option>
+                                    <option value="Mozzarella">Mozzarella</option>
+                                    <option value="Mushrooms">Mushrooms</option>
+                                    <option value="Pepperoni">Pepperoni</option>
+                                    <option value="Onions">Onions</option>
+                                </select>
+                                <script type="text/javascript">
+                                    const multi = new Multiselect(
+                                        document.getElementById('example-getting-started'),
+                                        {
+                                            enableHTML: true,
+                                        }
+                                    );
+                                </script>
+                            </div>
+
+    </body>
+</html>
